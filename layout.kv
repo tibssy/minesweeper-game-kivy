@@ -5,35 +5,13 @@
     color: (1,1,1,1)
     padding: sp(10)
     radius: 10
-    line_width: 2
+    line_width: None
     canvas.before:
         Color:
             rgba: self.color
         Line:
-            width: 1
-            points: self.pos[0] + self.radius, self.pos[1] + self.size[1], self.pos[0] + self.size[0] - self.radius, self.pos[1] + self.size[1]
-        Line:
-            width: 1
-            points: self.pos[0] + self.radius, self.pos[1], self.pos[0] + self.size[0] - self.radius, self.pos[1]
-        Line:
-            width: 1
-            points: self.pos[0], self.pos[1] + self.radius, self.pos[0], self.pos[1] + self.size[1] - self.radius
-        Line:
-            width: 1
-            points: self.pos[0] + self.size[0], self.pos[1] + self.radius, self.pos[0] + self.size[0], self.pos[1] + self.size[1] - self.radius
-        Line:
-            width: 1
-            circle: self.pos[0] + self.radius, self.pos[1] + self.radius, self.radius, 180, 270
-        Line:
-            width: 1
-            circle: self.pos[0] + self.size[0] - self.radius, self.pos[1] + self.radius, self.radius, 90, 180
-        Line:
-            width: 1
-            circle: self.pos[0] + self.size[0] - self.radius, self.pos[1] + self.size[1] - self.radius, self.radius, 0, 90
-        Line:
-            width: 1
-            circle: self.pos[0] + self.radius, self.pos[1] + self.size[1] - self.radius, self.radius, 270, 360
-
+            width: self.line_width or 1
+            rounded_rectangle: self.x, self.y, self.width, self.height, self.radius
 
 <ImageButton@ButtonBehavior+Image>
     allow_stretch: True
@@ -45,15 +23,34 @@
 
 <Header@BoxLayout>
     orientation: 'horizontal'
-    size_hint_y: None
-    height: sp(50)
+    size_hint_y: 0.06
     padding: sp(6)
+    canvas.before:
+        Color:
+            rgba: 0.1, 0.1, 0.1, 0.5
+        BoxShadow:
+            pos: self.pos
+            size: self.size
+            offset: 0, -2
+            spread_radius: 3, 3
+            border_radius: 6, 6, 6, 6
+            blur_radius: 6
+    canvas:
+        Color:
+            rgba: 254/255, 209/255, 153/255, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<Footer@Widget>
+    size_hint_y: 0.03
     canvas.before:
         Color:
             rgba: 254/255, 209/255, 153/255, 1
         Rectangle:
             size: self.size
             pos: self.pos
+
 
 <Indicator@Label+Bordered>
     size_hint_x: None
@@ -96,8 +93,16 @@
 
     Screen:
         name: 'main_screen'
+
         BoxLayout:
             orientation: 'vertical'
+            canvas.before:
+                Color:
+                    rgba: 47/255, 41/255, 34/255, 1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+
             Header:
 
                 Image:
@@ -119,12 +124,6 @@
             AnchorLayout:
                 anchor_x: 'center'
                 anchor_y: 'center'
-                canvas.before:
-                    Color:
-                        rgba: 47/255, 41/255, 34/255, 1
-                    Rectangle:
-                        size: self.size
-                        pos: self.pos
 
                 BoxLayout:
                     orientation: 'vertical'
@@ -148,18 +147,33 @@
                         color: 254/255, 209/255, 153/255, 1
                         on_release: root.toggle_screen()
 
+            Footer:
+
     Screen:
         name: 'game_screen'
         BoxLayout:
             orientation: 'vertical'
+            canvas.before:
+                Color:
+                    rgba: 47/255, 41/255, 34/255, 1
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
 
             Header:
                 Indicator:
                     text: '00'
+                    line_width: 2
                 Widget:
                 Indicator:
                     text: '00:00'
+                    line_width: 2
 
-            Button:
-                on_release: root.toggle_screen()
+            AnchorLayout:
+                anchor_x: 'center'
+                anchor_y: 'center'
+
+                Button:
+                    size_hint: 0.5, 0.5
+                    on_release: root.toggle_screen()
 
