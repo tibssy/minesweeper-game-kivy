@@ -43,6 +43,28 @@
     font_size: sp(18)
 
 
+<Header@BoxLayout>
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: sp(50)
+    padding: sp(6)
+    canvas.before:
+        Color:
+            rgba: 254/255, 209/255, 153/255, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<Indicator@Label+Bordered>
+    size_hint_x: None
+    size: self.texture_size
+    font_size: self.height
+    font_name: 'assets/fonts/JetBrainsMono-Bold.ttf'
+    color: 47/255, 41/255, 34/255, 1
+    radius: sp(5)
+
+
+
 <Selector@BoxLayout+Bordered>
     orientation: 'horizontal'
     size_hint_y: None
@@ -76,17 +98,7 @@
         name: 'main_screen'
         BoxLayout:
             orientation: 'vertical'
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: None
-                height: sp(50)
-                padding: sp(10)
-                canvas.before:
-                    Color:
-                        rgba: 254/255, 209/255, 153/255, 1
-                    Rectangle:
-                        size: self.size
-                        pos: self.pos
+            Header:
 
                 Image:
                     size_hint_x: None
@@ -138,6 +150,16 @@
 
     Screen:
         name: 'game_screen'
-        Button:
-            on_release: root.toggle_screen()
+        BoxLayout:
+            orientation: 'vertical'
+
+            Header:
+                Indicator:
+                    text: '00'
+                Widget:
+                Indicator:
+                    text: '00:00'
+
+            Button:
+                on_release: root.toggle_screen()
 
