@@ -24,7 +24,7 @@
 <Header@BoxLayout>
     orientation: 'horizontal'
     size_hint_y: 0.06
-    padding: sp(6)
+    padding: [12,6,12,6]
     canvas.before:
         Color:
             rgba: 0.1, 0.1, 0.1, 0.5
@@ -151,14 +151,9 @@
 
     Screen:
         name: 'game_screen'
+
         BoxLayout:
             orientation: 'vertical'
-            canvas.before:
-                Color:
-                    rgba: 47/255, 41/255, 34/255, 1
-                Rectangle:
-                    size: self.size
-                    pos: self.pos
 
             Header:
                 Indicator:
@@ -172,6 +167,33 @@
             AnchorLayout:
                 anchor_x: 'center'
                 anchor_y: 'center'
+                padding: [10,0,10,20]
+                canvas.before:
+                    Color:
+                        rgba: 254/255, 209/255, 153/255, 1
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
+
+                GridLayout:
+
+                    canvas.before:
+                        Color:
+                            rgba: 47/255, 41/255, 34/255, 1
+                        RoundedRectangle:
+                            size: self.size
+                            pos: self.pos
+                            radius: [sp(8)]
+                        Color:
+                            rgba: 0.1,0.1,0.1,0.8
+                        BoxShadow:
+                            size: [i - sp(8) for i in self.size]
+                            pos: [i + sp(4) for i in self.pos]
+                            offset: 0, 0
+                            spread_radius: 6, 6
+                            border_radius: [sp(12)] * 4
+                            blur_radius: sp(12)
+                            inset: True
 
                 Button:
                     size_hint: 0.5, 0.5
