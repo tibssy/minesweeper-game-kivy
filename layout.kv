@@ -1,5 +1,143 @@
-<MainLayout>
-    orientation: 'vertical'
+#:import CardTransition kivy.uix.screenmanager.CardTransition
 
-    Button:
-    Button:
+
+<Bordered@Widget>
+    color: (1,1,1,1)
+    padding: sp(10)
+    radius: 10
+    line_width: 2
+    canvas.before:
+        Color:
+            rgba: self.color
+        Line:
+            width: 1
+            points: self.pos[0] + self.radius, self.pos[1] + self.size[1], self.pos[0] + self.size[0] - self.radius, self.pos[1] + self.size[1]
+        Line:
+            width: 1
+            points: self.pos[0] + self.radius, self.pos[1], self.pos[0] + self.size[0] - self.radius, self.pos[1]
+        Line:
+            width: 1
+            points: self.pos[0], self.pos[1] + self.radius, self.pos[0], self.pos[1] + self.size[1] - self.radius
+        Line:
+            width: 1
+            points: self.pos[0] + self.size[0], self.pos[1] + self.radius, self.pos[0] + self.size[0], self.pos[1] + self.size[1] - self.radius
+        Line:
+            width: 1
+            circle: self.pos[0] + self.radius, self.pos[1] + self.radius, self.radius, 180, 270
+        Line:
+            width: 1
+            circle: self.pos[0] + self.size[0] - self.radius, self.pos[1] + self.radius, self.radius, 90, 180
+        Line:
+            width: 1
+            circle: self.pos[0] + self.size[0] - self.radius, self.pos[1] + self.size[1] - self.radius, self.radius, 0, 90
+        Line:
+            width: 1
+            circle: self.pos[0] + self.radius, self.pos[1] + self.size[1] - self.radius, self.radius, 270, 360
+
+
+<ImageButton@ButtonBehavior+Image>
+    allow_stretch: True
+
+
+<BorderedButton@ButtonBehavior+Label+Bordered>
+    font_size: sp(18)
+
+
+<Selector@BoxLayout+Bordered>
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: sp(50)
+    options: ['Option']
+    current_index: 0
+    ImageButton:
+        size_hint_x: None
+        width: self.height
+        color: root.color
+        source: 'assets/images/left.png'
+        on_release:
+            root.current_index = (root.current_index - 1) % len(root.options)
+    Label:
+        font_size: sp(18)
+        color: root.color
+        text: root.options[root.current_index]
+    ImageButton:
+        size_hint_x: None
+        width: self.height
+        color: root.color
+        source: 'assets/images/right.png'
+        on_release:
+            root.current_index = (root.current_index + 1) % len(root.options)
+
+
+<MainLayout>
+    transition: CardTransition()
+
+    Screen:
+        name: 'main_screen'
+        BoxLayout:
+            orientation: 'vertical'
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: sp(50)
+                padding: sp(10)
+                canvas.before:
+                    Color:
+                        rgba: 254/255, 209/255, 153/255, 1
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
+
+                Image:
+                    size_hint_x: None
+                    width: self.height
+                    source: 'assets/images/mine.png'
+                    size: self.texture_size
+                Label:
+                    color: 47/255, 41/255, 34/255, 1
+                    font_name: 'assets/fonts/JetBrainsMono-Bold.ttf'
+                    font_size: sp(24)
+                    text: 'Minesweeper Game'
+                Image:
+                    size_hint_x: None
+                    width: self.height
+                    source: 'assets/images/mine.png'
+                    size: self.texture_size
+
+            AnchorLayout:
+                anchor_x: 'center'
+                anchor_y: 'center'
+                canvas.before:
+                    Color:
+                        rgba: 47/255, 41/255, 34/255, 1
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint: 0.75, None
+                    height: self.minimum_height
+                    spacing: sp(20)
+
+                    Selector:
+                        color: 254/255, 209/255, 153/255, 1
+                        options: ['Dark', 'Light']
+                    Selector:
+                        color: 254/255, 209/255, 153/255, 1
+                        options: ['Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Red']
+                    Selector:
+                        color: 254/255, 209/255, 153/255, 1
+                        options: ['Easy', 'Medium', 'Hard']
+                    BorderedButton:
+                        size_hint_y: None
+                        height: sp(50)
+                        text: 'Play'
+                        color: 254/255, 209/255, 153/255, 1
+                        on_release: root.toggle_screen()
+
+    Screen:
+        name: 'game_screen'
+        Button:
+            on_release: root.toggle_screen()
+
