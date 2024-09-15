@@ -1,11 +1,10 @@
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager
 from kivy.lang import Builder
 from kivy.core.window import Window
-from kivy.factory import Factory
-from kivy.uix.button import Button
 from kivy.properties import StringProperty, ListProperty, ColorProperty
+from kivy.animation import Animation
+
 from colorsys import hls_to_rgb
 
 from configurations import Hue, DarkTheme, LightTheme, GameMode, Icons
@@ -49,15 +48,20 @@ class MainLayout(ScreenManager):
             }
         }
 
-        print(self.theme)
-        print(self.color)
+        primary_background = [*hls_to_rgb(hue, *modes[self.theme]['PRIMARY_BACKGROUND'][::-1]), 1]
+        secondary_background = [*hls_to_rgb(hue, *modes[self.theme]['SECONDARY_BACKGROUND'][::-1]), 1]
+        primary_accent = [*hls_to_rgb(hue, *modes[self.theme]['PRIMARY_ACCENT'][::-1]), 1]
+        secondary_accent = [*hls_to_rgb(hue, *modes[self.theme]['SECONDARY_ACCENT'][::-1]), 1]
 
-        self.primary_background = [*hls_to_rgb(hue, *modes[self.theme]['PRIMARY_BACKGROUND'][::-1]), 1]
-        self.secondary_background = [*hls_to_rgb(hue, *modes[self.theme]['SECONDARY_BACKGROUND'][::-1]), 1]
-        self.primary_accent = [*hls_to_rgb(hue, *modes[self.theme]['PRIMARY_ACCENT'][::-1]), 1]
-        self.secondary_accent = [*hls_to_rgb(hue, *modes[self.theme]['SECONDARY_ACCENT'][::-1]), 1]
-
-
+        animate = Animation(
+            primary_background=primary_background,
+            secondary_background=secondary_background,
+            primary_accent=primary_accent,
+            secondary_accent=secondary_accent,
+            duration=1,
+            transition='out_expo'
+        )
+        animate.start(self)
 
     def toggle_screen(self):
         if self.current == 'main_screen':
