@@ -2,7 +2,7 @@
 
 
 <Bordered@Widget>
-    color: (1,1,1,1)
+    color: [1,1,1,1]
     padding: sp(10)
     radius: 10
     line_width: None
@@ -25,6 +25,7 @@
     orientation: 'horizontal'
     size_hint_y: 0.06
     padding: [12,6,12,6]
+    color: [1,1,1,1]
     canvas.before:
         Color:
             rgba: 0.1, 0.1, 0.1, 0.5
@@ -37,16 +38,17 @@
             blur_radius: 6
     canvas:
         Color:
-            rgba: 254/255, 209/255, 153/255, 1
+            rgba: root.color
         Rectangle:
             size: self.size
             pos: self.pos
 
 <Footer@Widget>
     size_hint_y: 0.03
+    color: [1,1,1,1]
     canvas.before:
         Color:
-            rgba: 254/255, 209/255, 153/255, 1
+            rgba: self.color
         Rectangle:
             size: self.size
             pos: self.pos
@@ -57,7 +59,7 @@
     size: self.texture_size
     font_size: self.height
     font_name: 'assets/fonts/JetBrainsMono-Bold.ttf'
-    color: 47/255, 41/255, 34/255, 1
+    color: [0,0,0,1]
     radius: sp(5)
 
 
@@ -68,6 +70,7 @@
     height: sp(50)
     options: ['Option']
     current_index: 0
+    value: self.options[self.current_index]
     ImageButton:
         size_hint_x: None
         width: self.height
@@ -75,6 +78,7 @@
         source: 'assets/images/left.png'
         on_release:
             root.current_index = (root.current_index - 1) % len(root.options)
+
     Label:
         font_size: sp(18)
         color: root.color
@@ -98,12 +102,13 @@
             orientation: 'vertical'
             canvas.before:
                 Color:
-                    rgba: 47/255, 41/255, 34/255, 1
+                    rgba: root.primary_background
                 Rectangle:
                     size: self.size
                     pos: self.pos
 
             Header:
+                color: root.secondary_accent
 
                 Image:
                     size_hint_x: None
@@ -111,7 +116,7 @@
                     source: 'assets/images/mine.png'
                     size: self.texture_size
                 Label:
-                    color: 47/255, 41/255, 34/255, 1
+                    color: root.primary_background
                     font_name: 'assets/fonts/JetBrainsMono-Bold.ttf'
                     font_size: sp(24)
                     text: 'Minesweeper Game'
@@ -132,22 +137,27 @@
                     spacing: sp(20)
 
                     Selector:
-                        color: 254/255, 209/255, 153/255, 1
+                        color: root.secondary_accent
                         options: ['Dark', 'Light']
+                        on_value: root.toggle_dark_mode(self.value)
                     Selector:
-                        color: 254/255, 209/255, 153/255, 1
+                        color: root.secondary_accent
                         options: ['Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Red']
+                        on_value: root.set_color_theme(self.value)
                     Selector:
-                        color: 254/255, 209/255, 153/255, 1
+                        color: root.secondary_accent
                         options: ['Easy', 'Medium', 'Hard']
                     BorderedButton:
                         size_hint_y: None
                         height: sp(50)
                         text: 'Play'
-                        color: 254/255, 209/255, 153/255, 1
-                        on_release: root.toggle_screen()
+                        color: root.secondary_accent
+                        on_release:
+                            root.toggle_screen()
 
             Footer:
+                color: root.secondary_accent
+
 
     Screen:
         name: 'game_screen'
@@ -156,21 +166,25 @@
             orientation: 'vertical'
 
             Header:
+                color: root.secondary_accent
+
                 Indicator:
                     text: '00'
                     line_width: 2
+                    color: root.primary_background
                 Widget:
                 Indicator:
                     text: '00:00'
                     line_width: 2
+                    color: root.primary_background
 
             AnchorLayout:
                 anchor_x: 'center'
                 anchor_y: 'center'
-                padding: [10,0,10,20]
+                padding: [10,2,10,20]
                 canvas.before:
                     Color:
-                        rgba: 254/255, 209/255, 153/255, 1
+                        rgba: root.secondary_accent
                     Rectangle:
                         size: self.size
                         pos: self.pos
@@ -179,7 +193,7 @@
 
                     canvas.before:
                         Color:
-                            rgba: 47/255, 41/255, 34/255, 1
+                            rgba: root.primary_background
                         RoundedRectangle:
                             size: self.size
                             pos: self.pos
@@ -187,12 +201,12 @@
                         Color:
                             rgba: 0.1,0.1,0.1,0.8
                         BoxShadow:
-                            size: [i - sp(8) for i in self.size]
-                            pos: [i + sp(4) for i in self.pos]
+                            size: self.size
+                            pos: self.pos
                             offset: 0, 0
                             spread_radius: 6, 6
-                            border_radius: [sp(12)] * 4
-                            blur_radius: sp(12)
+                            border_radius: [sp(8)] * 4
+                            blur_radius: sp(8)
                             inset: True
 
                 Button:
