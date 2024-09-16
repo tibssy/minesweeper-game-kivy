@@ -100,9 +100,9 @@ class GameMode(Enum):
         HARD (dict): Settings for hard mode.
     """
 
-    EASY = {'mine': 10, 'grid_size': (11, 8)}
-    MEDIUM = {'mine': 30, 'grid_size': (19, 14)}
-    HARD = {'mine': 60, 'grid_size': (25, 16)}
+    EASY = {'mine': 10, 'grid_size': (9, 18)}
+    MEDIUM = {'mine': 30, 'grid_size': (11, 22)}
+    HARD = {'mine': 60, 'grid_size': (13, 26)}
 
 
 class Icons(Enum):

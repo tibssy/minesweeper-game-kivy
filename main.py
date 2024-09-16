@@ -1,11 +1,18 @@
+from typing import List, Callable, Optional, Tuple
+from functools import partial
+from colorsys import hls_to_rgb
+import numpy as np
+from collections import deque
+
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from kivy.lang import Builder
 from kivy.core.window import Window
 from kivy.properties import StringProperty, ListProperty, ColorProperty
 from kivy.animation import Animation
-
-from colorsys import hls_to_rgb
+from kivy.uix.widget import Widget
+from kivy.factory import Factory
+from kivy.clock import Clock
 
 from configurations import Hue, DarkTheme, LightTheme, GameMode, Icons
 
@@ -17,14 +24,96 @@ if Window._is_desktop:
     Window.size = 500, 1000
 
 
+class GameLogic:
+    def __init__(
+            self,
+            cols: int = 10,
+            rows: int = 10,
+            number_of_mines: int = 10
+    ):
+        self.cols = cols
+        self.rows = rows
+        self.number_of_mines = number_of_mines
+        self.game_matrix = np.zeros((self.rows, self.cols), dtype=np.uint8)
+        self.mask = np.ones((3, 3), dtype=int)
+        self.initialize_mines()
+
+    def initialize_mines(self) -> None:
+        matrix = self.game_matrix.copy()
+
+        random_mines = np.random.choice(self.game_matrix.size, self.number_of_mines, replace=False)
+
+        for mine in random_mines:
+            mask = self.mask.copy()
+            mask[1, 1] = 9
+            pos_y, pos_x = divmod(mine, self.cols)
+            pos_y, pos_x = pos_y - 1, pos_x - 1
+
+            if pos_x < 0:
+                mask = mask[:, 1:]
+                pos_x = 0
+            elif pos_x > self.cols - 3:
+                mask = mask[:, :-1]
+
+            if pos_y < 0:
+                mask = mask[1:, :]
+                pos_y = 0
+            elif pos_y > self.rows - 3:
+                mask = mask[:-1, :]
+
+            new_matrix = self.game_matrix.copy()
+            new_matrix[
+                pos_y:pos_y + mask.shape[0],
+                pos_x:pos_x + mask.shape[1]
+            ] = mask
+            matrix += new_matrix
+
+        self.game_matrix = matrix
+
+    def validate_flags(self, flags: set) -> bool:
+        positions = map(tuple, np.argwhere(self.game_matrix >= 9).tolist())
+        return not bool(set.difference(set(positions), flags))
+
+    def get_connected_component(self, position: list | tuple):
+        zero_positions = np.argwhere(self.game_matrix == 0)
+        zeros = np.zeros_like(self.game_matrix, dtype=np.uint8)
+        zero_set = set(map(tuple, zero_positions))
+        component = np.array([position])
+
+        queue = deque([position])
+        visited = set()
+        visited.add(position)
+
+        directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+
+        while queue:
+            current = queue.popleft()
+
+            for direction in directions:
+                new_position = (current[0] + direction[0], current[1] + direction[1])
+
+                if new_position in zero_set and new_position not in visited:
+                    visited.add(new_position)
+                    queue.append(new_position)
+                    component = np.vstack([component, new_position])
+
+        for pos in component:
+            pos_start = np.clip(pos - 1, 0, [self.rows - 1, self.cols - 1])
+            pos_end = np.clip(pos + 1, 0, [self.rows - 1, self.cols - 1])
+
+            zeros[pos_start[0]:pos_end[0] + 1, pos_start[1]:pos_end[1] + 1] = 1
+
+        return np.argwhere(zeros)
+
+
 class MainLayout(ScreenManager):
     primary_background = ColorProperty([47/255, 41/255, 34/255, 1])
     secondary_background = ColorProperty([0.1,0.1,0.1,1])
-    primary_accent = ColorProperty([254/255, 209/255, 153/255, 1])
+    primary_accent = ColorProperty([245/255, 162/255, 61/255, 1])
     secondary_accent = ColorProperty([254/255, 209/255, 153/255, 1])
     theme = StringProperty('dark')
     color = StringProperty('orange')
-
+    difficulty = StringProperty('easy')
 
     def toggle_dark_mode(self, theme):
         self.theme = theme.lower()
@@ -75,11 +164,68 @@ class MainLayout(ScreenManager):
             self.current = 'main_screen'
 
 
+class BoardButton(Widget):
+    def __init__(
+            self,
+            press_time=1,
+            on_release=None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.press_time = press_time
+        self.is_long_press = False
+        self.on_release = on_release
+
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.is_long_press = False
+            Clock.schedule_once(partial(self._set_long_press, touch), self.press_time)
+            touch.grab(self)
+            return True
+
+    def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            touch.ungrab(self)
+            if not self.is_long_press:
+                self._trigger_callback()
+            return True
+
+    def _set_long_press(self, touch, dt=0):
+        if touch.time_end == -1:
+            self.is_long_press = True
+            self._trigger_callback()
+
+    def _trigger_callback(self):
+        if callable(self.on_release):
+            self.on_release(self)
+
+
+
 class MinesweeperApp(App):
-
-
     def build(self):
         return MainLayout()
+
+    def build_game(self):
+        game_mode = GameMode[self.root.difficulty.upper()].value
+        width, height = game_mode['grid_size']
+        game = GameLogic(
+            cols=width,
+            rows=height,
+            number_of_mines=game_mode['mine']
+        )
+        print(game.game_matrix)
+        self.root.ids.game_grid.cols = width
+
+        for id in range(width * height):
+            button = BoardButton()
+            button.radius = 5
+            button.color = self.root.primary_accent if id % 2 else self.root.secondary_accent
+            button.on_release = self.set_button
+            self.root.ids.game_grid.add_widget(button)
+
+    def set_button(self, instance):
+        instance.color = (0,1,0,1) if instance.is_long_press else (1,0,0,1)
 
 
 if __name__ == "__main__":

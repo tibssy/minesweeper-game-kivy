@@ -38,10 +38,11 @@
             blur_radius: 6
     canvas:
         Color:
-            rgba: root.color
+            rgba: self.color
         Rectangle:
             size: self.size
             pos: self.pos
+
 
 <Footer@Widget>
     size_hint_y: 0.03
@@ -61,7 +62,6 @@
     font_name: 'assets/fonts/JetBrainsMono-Bold.ttf'
     color: [0,0,0,1]
     radius: sp(5)
-
 
 
 <Selector@BoxLayout+Bordered>
@@ -90,6 +90,28 @@
         source: 'assets/images/right.png'
         on_release:
             root.current_index = (root.current_index + 1) % len(root.options)
+
+
+<BoardButton>
+    color: 1,1,1,1
+    radius: 10
+    canvas.before:
+        Color:
+            rgba: 0.1, 0.1, 0.1, 0.5
+        BoxShadow:
+            pos: self.pos
+            size: self.size
+            offset: 0, -2
+            spread_radius: 3, 3
+            border_radius: 6, 6, 6, 6
+            blur_radius: self.radius
+    canvas:
+        Color:
+            rgba: self.color
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.radius]
 
 
 <MainLayout>
@@ -147,6 +169,7 @@
                     Selector:
                         color: root.secondary_accent
                         options: ['Easy', 'Medium', 'Hard']
+                        on_value: root.difficulty = self.value.lower()
                     BorderedButton:
                         size_hint_y: None
                         height: sp(50)
@@ -154,10 +177,10 @@
                         color: root.secondary_accent
                         on_release:
                             root.toggle_screen()
+                            app.build_game()
 
             Footer:
                 color: root.secondary_accent
-
 
     Screen:
         name: 'game_screen'
@@ -166,8 +189,7 @@
             orientation: 'vertical'
 
             Header:
-                color: root.secondary_accent
-
+                color: root.secondary_accent#
                 Indicator:
                     text: '00'
                     line_width: 2
@@ -178,10 +200,9 @@
                     line_width: 2
                     color: root.primary_background
 
-            AnchorLayout:
-                anchor_x: 'center'
-                anchor_y: 'center'
+            BoxLayout:
                 padding: [10,2,10,20]
+
                 canvas.before:
                     Color:
                         rgba: root.secondary_accent
@@ -190,6 +211,9 @@
                         pos: self.pos
 
                 GridLayout:
+                    id: game_grid
+                    padding: 5
+                    spacing: 5
 
                     canvas.before:
                         Color:
@@ -209,7 +233,7 @@
                             blur_radius: sp(8)
                             inset: True
 
-                Button:
-                    size_hint: 0.5, 0.5
-                    on_release: root.toggle_screen()
+#                    Button:
+##                        size_hint: 0.5, 0.5
+#                        on_release: root.toggle_screen()
 
