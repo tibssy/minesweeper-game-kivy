@@ -100,9 +100,21 @@ class GameMode(Enum):
         HARD (dict): Settings for hard mode.
     """
 
-    EASY = {'mine': 10, 'grid_size': (9, 18)}
-    MEDIUM = {'mine': 30, 'grid_size': (11, 22)}
-    HARD = {'mine': 60, 'grid_size': (13, 26)}
+    EASY = {'mine': 10, 'grid_size': (7, 14)}
+    MEDIUM = {'mine': 25, 'grid_size': (11, 22)}
+    HARD = {'mine': 50, 'grid_size': (15, 30)}
+
+
+class GameSize(Enum):
+    SMALL = (8, 16)
+    MEDIUM = (12, 24)
+    LARGE = (16, 32)
+
+
+class Level(Enum):
+    EASY = 10
+    MEDIUM = 15
+    HARD = 20
 
 
 class Icons(Enum):

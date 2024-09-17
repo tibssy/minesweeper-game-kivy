@@ -3,6 +3,7 @@ from functools import partial
 from colorsys import hls_to_rgb
 import numpy as np
 from collections import deque
+from threading import Thread
 
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
@@ -13,8 +14,9 @@ from kivy.animation import Animation
 from kivy.uix.widget import Widget
 from kivy.factory import Factory
 from kivy.clock import Clock
+from kivy.graphics import Rectangle, Color, RoundedRectangle
 
-from configurations import Hue, DarkTheme, LightTheme, GameMode, Icons
+from configurations import Hue, DarkTheme, LightTheme, GameSize, GameMode, Icons
 
 
 Builder.load_file('layout.kv')
@@ -113,7 +115,12 @@ class MainLayout(ScreenManager):
     secondary_accent = ColorProperty([254/255, 209/255, 153/255, 1])
     theme = StringProperty('dark')
     color = StringProperty('orange')
+    game_size = StringProperty('medium')
     difficulty = StringProperty('easy')
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.set_game_size(self.game_size)
 
     def toggle_dark_mode(self, theme):
         self.theme = theme.lower()
@@ -152,6 +159,15 @@ class MainLayout(ScreenManager):
         )
         animate.start(self)
 
+    def set_game_size(self, size):
+        self.game_size = size.lower()
+        cols, rows = GameSize[size.upper()].value
+        self.ids.game_board.cols = cols
+        self.ids.game_board.rows = rows
+
+
+
+
     def toggle_screen(self):
         if self.current == 'main_screen':
             self.transition.mode = 'pop'
@@ -162,6 +178,38 @@ class MainLayout(ScreenManager):
             self.transition.mode = 'push'
             self.transition.direction = 'down'
             self.current = 'main_screen'
+
+
+class GameBoard(Widget):
+    def __init__(self, rows=16, cols=8, **kwargs):
+        super().__init__(**kwargs)
+        self.rows = rows
+        self.cols = cols
+        self.gap_size = 5
+        self.bind(size=self.update_board, pos=self.update_board)
+        self.draw_board()
+
+    def update_board(self, *args):
+        self.canvas.clear()
+        self.draw_board()
+
+    def draw_board(self):
+        square_width = (self.width - self.gap_size * (self.cols + 1)) / self.cols
+        square_height = (self.height - self.gap_size * (self.rows + 1)) / self.rows
+
+        with self.canvas:
+            for row in range(self.rows):
+                for col in range(self.cols):
+                    x = col * (square_width + self.gap_size) + self.gap_size + self.pos[0]
+                    y = row * (square_height + self.gap_size) + self.gap_size + self.pos[1]
+
+                    if (row + col) % 2 == 0:
+                        Color(0.6, 0.6, 0.6)
+                    else:
+                        Color(0.4, 0.4, 0.4)
+
+                    RoundedRectangle(pos=(x, y), size=(square_width, square_height), radius=[5])
+
 
 
 class BoardButton(Widget):
@@ -206,23 +254,27 @@ class MinesweeperApp(App):
     def build(self):
         return MainLayout()
 
+
     def build_game(self):
-        game_mode = GameMode[self.root.difficulty.upper()].value
-        width, height = game_mode['grid_size']
+        pass
+        print(self.root.game_size)
+        width, height = GameSize[self.root.game_size.upper()].value
+
         game = GameLogic(
             cols=width,
             rows=height,
-            number_of_mines=game_mode['mine']
+            number_of_mines=10
         )
         print(game.game_matrix)
-        self.root.ids.game_grid.cols = width
+        # self.root.ids.game_grid.cols = width
+        #
+        # for id in range(width * height):
+        #     button = BoardButton()
+        #     button.radius = 5
+        #     button.color = self.root.primary_accent if id % 2 else self.root.secondary_accent
+        #     button.on_release = self.set_button
+        #     self.root.ids.game_grid.add_widget(button)
 
-        for id in range(width * height):
-            button = BoardButton()
-            button.radius = 5
-            button.color = self.root.primary_accent if id % 2 else self.root.secondary_accent
-            button.on_release = self.set_button
-            self.root.ids.game_grid.add_widget(button)
 
     def set_button(self, instance):
         instance.color = (0,1,0,1) if instance.is_long_press else (1,0,0,1)

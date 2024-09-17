@@ -3,7 +3,7 @@
 
 <Bordered@Widget>
     color: [1,1,1,1]
-    padding: sp(10)
+#    padding: sp(10)
     radius: 10
     line_width: None
     canvas.before:
@@ -58,6 +58,7 @@
 <Indicator@Label+Bordered>
     size_hint_x: None
     size: self.texture_size
+    padding: sp(10)
     font_size: self.height
     font_name: 'assets/fonts/JetBrainsMono-Bold.ttf'
     color: [0,0,0,1]
@@ -65,46 +66,66 @@
 
 
 <Selector@BoxLayout+Bordered>
-    orientation: 'horizontal'
+    orientation: 'vertical'
+    text: ''
     size_hint_y: None
-    height: sp(50)
+    height: sp(80)
+    line_width: None
     options: ['Option']
     current_index: 0
     value: self.options[self.current_index]
-    ImageButton:
-        size_hint_x: None
-        width: self.height
-        color: root.color
-        source: 'assets/images/left.png'
-        on_release:
-            root.current_index = (root.current_index - 1) % len(root.options)
 
     Label:
+        size_hint_y: 0.4
+        text: root.text
+        color: root.color
         font_size: sp(18)
-        color: root.color
-        text: root.options[root.current_index]
-    ImageButton:
-        size_hint_x: None
-        width: self.height
-        color: root.color
-        source: 'assets/images/right.png'
-        on_release:
-            root.current_index = (root.current_index + 1) % len(root.options)
+        bold: True
+        canvas.before:
+            Color:
+                rgba: root.color
+            Line:
+                width: root.line_width or 1
+                points: self.pos[0], self.pos[1], self.pos[0] + self.width, self.pos[1]
+
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: 0.6
+        padding: sp(10)
+
+        ImageButton:
+            size_hint_x: None
+            width: self.height
+            color: root.color
+            source: 'assets/images/left.png'
+            on_release:
+                root.current_index = (root.current_index - 1) % len(root.options)
+        Label:
+            font_size: sp(18)
+            color: root.color
+            text: root.options[root.current_index]
+        ImageButton:
+            size_hint_x: None
+            width: self.height
+            color: root.color
+            source: 'assets/images/right.png'
+            on_release:
+                root.current_index = (root.current_index + 1) % len(root.options)
 
 
 <BoardButton>
     color: 1,1,1,1
     radius: 10
-    canvas.before:
-        Color:
-            rgba: 0.1, 0.1, 0.1, 0.5
-        BoxShadow:
-            pos: self.pos
-            size: self.size
-            offset: 0, -2
-            spread_radius: 3, 3
-            border_radius: 6, 6, 6, 6
-            blur_radius: self.radius
+#    canvas.before:
+#        Color:
+#            rgba: 0.1, 0.1, 0.1, 0.5
+#        BoxShadow:
+#            pos: self.pos
+#            size: self.size
+#            offset: 0, -2
+#            spread_radius: 3, 3
+#            border_radius: 6, 6, 6, 6
+#            blur_radius: self.radius
     canvas:
         Color:
             rgba: self.color
@@ -159,14 +180,23 @@
                     spacing: sp(20)
 
                     Selector:
+                        text: 'Theme'
                         color: root.secondary_accent
                         options: ['Dark', 'Light']
                         on_value: root.toggle_dark_mode(self.value)
                     Selector:
+                        text: 'Color'
                         color: root.secondary_accent
                         options: ['Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Red']
                         on_value: root.set_color_theme(self.value)
                     Selector:
+                        text: 'Size'
+                        color: root.secondary_accent
+                        options: ['Small', 'Medium', 'Large']
+                        current_index: 1
+                        on_value: root.set_game_size(self.value)
+                    Selector:
+                        text: 'Difficulty'
                         color: root.secondary_accent
                         options: ['Easy', 'Medium', 'Hard']
                         on_value: root.difficulty = self.value.lower()
@@ -201,6 +231,7 @@
                     color: root.primary_background
 
             BoxLayout:
+                orientation: 'vertical'
                 padding: [10,2,10,20]
 
                 canvas.before:
@@ -210,10 +241,9 @@
                         size: self.size
                         pos: self.pos
 
-                GridLayout:
-                    id: game_grid
-                    padding: 5
-                    spacing: 5
+
+                GameBoard:
+                    id: game_board
 
                     canvas.before:
                         Color:
@@ -232,6 +262,7 @@
                             border_radius: [sp(8)] * 4
                             blur_radius: sp(8)
                             inset: True
+
 
 #                    Button:
 ##                        size_hint: 0.5, 0.5
