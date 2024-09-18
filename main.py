@@ -9,12 +9,13 @@ from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 from kivy.lang import Builder
 from kivy.core.window import Window
-from kivy.properties import StringProperty, ListProperty, ColorProperty
+from kivy.properties import StringProperty, ListProperty, ColorProperty, NumericProperty
 from kivy.animation import Animation
 from kivy.uix.widget import Widget
 from kivy.factory import Factory
 from kivy.clock import Clock
 from kivy.graphics import Rectangle, Color, RoundedRectangle
+from kivy.core.text import Label as CoreLabel
 
 from configurations import Hue, DarkTheme, LightTheme, GameSize, GameMode, Icons
 
@@ -181,12 +182,17 @@ class MainLayout(ScreenManager):
 
 
 class GameBoard(Widget):
-    def __init__(self, rows=16, cols=8, **kwargs):
+    rows = NumericProperty(16)
+    cols = NumericProperty(8)
+    gap = NumericProperty(5)
+    background_color = ColorProperty([0.4, 0.4, 0.4])
+    color = ColorProperty([0, 0, 0, 1])
+
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.rows = rows
-        self.cols = cols
-        self.gap_size = 5
+        self.squares = {}
         self.bind(size=self.update_board, pos=self.update_board)
+        self.bind(rows=self.update_board, cols=self.update_board)
         self.draw_board()
 
     def update_board(self, *args):
@@ -194,21 +200,49 @@ class GameBoard(Widget):
         self.draw_board()
 
     def draw_board(self):
-        square_width = (self.width - self.gap_size * (self.cols + 1)) / self.cols
-        square_height = (self.height - self.gap_size * (self.rows + 1)) / self.rows
+        square_width = (self.width - self.gap * (self.cols + 1)) / self.cols
+        square_height = (self.height - self.gap * (self.rows + 1)) / self.rows
 
         with self.canvas:
             for row in range(self.rows):
                 for col in range(self.cols):
-                    x = col * (square_width + self.gap_size) + self.gap_size + self.pos[0]
-                    y = row * (square_height + self.gap_size) + self.gap_size + self.pos[1]
+                    self._draw_square(row, col, square_width, square_height)
 
-                    if (row + col) % 2 == 0:
-                        Color(0.6, 0.6, 0.6)
-                    else:
-                        Color(0.4, 0.4, 0.4)
+    def _draw_square(self, row, col, square_width, square_height):
+        x, y = self._calculate_square_position(row, col, square_width, square_height)
+        square_data = self.squares.get((row, col), {})
+        background_color = square_data.get('background_color', self.background_color)
 
-                    RoundedRectangle(pos=(x, y), size=(square_width, square_height), radius=[5])
+        Color(*background_color)
+        RoundedRectangle(pos=(x, y), size=(square_width, square_height), radius=[5])
+        self._draw_square_text(square_data, x, y, square_width, square_height)
+
+    def _calculate_square_position(self, row, col, square_width, square_height):
+        x = col * (square_width + self.gap) + self.gap + self.pos[0]
+        y = row * (square_height + self.gap) + self.gap + self.pos[1]
+        return x, y
+
+    def _draw_square_text(self, square_data, x, y, square_width, square_height):
+        text = square_data.get('text')
+        if text:
+            color = square_data.get('color', (1, 1, 1, 1))
+            self.draw_text(text, color, x, y, square_width, square_height)
+
+    def draw_text(self, text, color, x, y, square_width, square_height):
+        label = CoreLabel(text=text, font_size=min(square_width, square_height) * 0.8, bold=True, color=color)
+        label.refresh()
+        text_size = label.texture.size
+        text_x = x + (square_width - text_size[0]) / 2
+        text_y = y + (square_height - text_size[1]) / 2
+
+        with self.canvas.after:
+            Rectangle(texture=label.texture, pos=(text_x, text_y), size=text_size)
+
+    def set_square(self, row, col, background_color=None, text=None, color=(1, 1, 1, 1)):
+        if background_color is None:
+            background_color = self.background_color
+        self.squares[(row, col)] = {'background_color': background_color, 'text': text, 'color': color}
+        self.update_board()
 
 
 

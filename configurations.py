@@ -84,7 +84,7 @@ class DarkTheme(Enum):
     """
 
     PRIMARY_BACKGROUND = (0.16, 0.16)
-    SECONDARY_BACKGROUND = (0.15, 0.25)
+    SECONDARY_BACKGROUND = (0.20, 0.25)
     PRIMARY_ACCENT = (0.9, 0.6)
     SECONDARY_ACCENT = (1, 0.8)
     FONT_COLOR = (0.95, 0.95)
