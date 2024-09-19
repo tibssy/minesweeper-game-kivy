@@ -274,7 +274,7 @@ class GameBoard(Widget):
             self.set_square(*self._get_touch_on_grid(touch), (0.2, 0.2, 0.8, 1))
 
     def _get_touch_on_grid(self, touch):
-        local_x, local_y = self.to_local(touch.x, touch.y, relative=True)
+        local_x, local_y = self.to_local(touch.ox, touch.oy, relative=True)
         return int(local_y / self.height * self.rows), int(local_x / self.width * self.cols)
 
     def _trigger_callback(self):
