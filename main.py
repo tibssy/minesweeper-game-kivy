@@ -111,7 +111,7 @@ class GameLogic:
 
 class MainLayout(ScreenManager):
     primary_background = ColorProperty([47/255, 41/255, 34/255, 1])
-    secondary_background = ColorProperty([0.1,0.1,0.1,1])
+    secondary_background = ColorProperty([76/255,65/255,51/255,1])
     primary_accent = ColorProperty([245/255, 162/255, 61/255, 1])
     secondary_accent = ColorProperty([254/255, 209/255, 153/255, 1])
     theme = StringProperty('dark')
@@ -188,8 +188,16 @@ class GameBoard(Widget):
     background_color = ColorProperty([0.4, 0.4, 0.4])
     color = ColorProperty([0, 0, 0, 1])
 
-    def __init__(self, **kwargs):
+    def __init__(
+            self,
+            press_time=1,
+            on_release=None,
+            **kwargs
+    ):
         super().__init__(**kwargs)
+        self.press_time = press_time
+        self.is_long_press = False
+        self.on_release = on_release
         self.squares = {}
         self.bind(size=self.update_board, pos=self.update_board)
         self.bind(rows=self.update_board, cols=self.update_board)
@@ -243,6 +251,35 @@ class GameBoard(Widget):
             background_color = self.background_color
         self.squares[(row, col)] = {'background_color': background_color, 'text': text, 'color': color}
         self.update_board()
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.is_long_press = False
+            Clock.schedule_once(partial(self._set_long_press, touch), self.press_time)
+            touch.grab(self)
+            return True
+
+    def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            touch.ungrab(self)
+            if not self.is_long_press:
+                # self._trigger_callback()
+                self.set_square(*self._get_touch_on_grid(touch), (0, 0, 0, 0))
+            return True
+
+    def _set_long_press(self, touch, dt=0):
+        if touch.time_end == -1:
+            self.is_long_press = True
+            # self._trigger_callback()
+            self.set_square(*self._get_touch_on_grid(touch), (0.2, 0.2, 0.8, 1))
+
+    def _get_touch_on_grid(self, touch):
+        local_x, local_y = self.to_local(touch.x, touch.y, relative=True)
+        return int(local_y / self.height * self.rows), int(local_x / self.width * self.cols)
+
+    def _trigger_callback(self):
+        if callable(self.on_release):
+            self.on_release(self)
 
 
 
