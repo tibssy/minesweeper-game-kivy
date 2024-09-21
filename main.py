@@ -116,6 +116,7 @@ class MainLayout(ScreenManager):
     secondary_background = ColorProperty([76/255,65/255,51/255,1])
     primary_accent = ColorProperty([245/255, 162/255, 61/255, 1])
     secondary_accent = ColorProperty([254/255, 209/255, 153/255, 1])
+    font_color = ColorProperty([254/255, 243/255, 230/255, 1])
     theme = StringProperty('dark')
     color = StringProperty('orange')
     game_size = StringProperty('medium')
@@ -126,6 +127,7 @@ class MainLayout(ScreenManager):
         self.set_color_theme(self.color)
 
     def set_color_theme(self, color):
+        print(color)
         self.color = color.lower()
         hue = Hue[color.upper()].value / 360
         modes = {
@@ -133,13 +135,15 @@ class MainLayout(ScreenManager):
                 'PRIMARY_BACKGROUND': DarkTheme.PRIMARY_BACKGROUND.value,
                 'SECONDARY_BACKGROUND': DarkTheme.SECONDARY_BACKGROUND.value,
                 'PRIMARY_ACCENT': DarkTheme.PRIMARY_ACCENT.value,
-                'SECONDARY_ACCENT': DarkTheme.SECONDARY_ACCENT.value
+                'SECONDARY_ACCENT': DarkTheme.SECONDARY_ACCENT.value,
+                'FONT_COLOR': DarkTheme.FONT_COLOR.value
             },
             'light': {
                 'PRIMARY_BACKGROUND': LightTheme.PRIMARY_BACKGROUND.value,
                 'SECONDARY_BACKGROUND': LightTheme.SECONDARY_BACKGROUND.value,
                 'PRIMARY_ACCENT': LightTheme.PRIMARY_ACCENT.value,
-                'SECONDARY_ACCENT': LightTheme.SECONDARY_ACCENT.value
+                'SECONDARY_ACCENT': LightTheme.SECONDARY_ACCENT.value,
+                'FONT_COLOR': LightTheme.FONT_COLOR.value
             }
         }
 
@@ -147,16 +151,21 @@ class MainLayout(ScreenManager):
         secondary_background = [*hls_to_rgb(hue, *modes[self.theme]['SECONDARY_BACKGROUND'][::-1]), 1]
         primary_accent = [*hls_to_rgb(hue, *modes[self.theme]['PRIMARY_ACCENT'][::-1]), 1]
         secondary_accent = [*hls_to_rgb(hue, *modes[self.theme]['SECONDARY_ACCENT'][::-1]), 1]
+        font_color = [*hls_to_rgb(hue, *modes[self.theme]['FONT_COLOR'][::-1]), 1]
+        print(*modes[self.theme]['FONT_COLOR'])
+        print(*hls_to_rgb(hue, *modes[self.theme]['FONT_COLOR'][::-1]))
 
         animate = Animation(
             primary_background=primary_background,
             secondary_background=secondary_background,
             primary_accent=primary_accent,
             secondary_accent=secondary_accent,
+            font_color=font_color,
             duration=1,
             transition='out_expo'
         )
         animate.start(self)
+
 
     def set_game_size(self, size):
         self.game_size = size.lower()
@@ -195,6 +204,7 @@ class GameBoard(Widget):
 
     def update_board(self, *args):
         self.canvas.clear()
+        self.canvas.after.clear()
         self.draw_board()
 
     def reset_board(self):
@@ -215,7 +225,7 @@ class GameBoard(Widget):
         x, y = self._calculate_square_position(row, col)
         square_data = self.squares.get((row, col), {})
         background_color = square_data.get('background_color', self.background_color)
-        shadow_color = [0, 0, 0, 0.2]
+        shadow_color = [0, 0, 0, 0.3]
         shadow_offset = self.square_width * 0.05
 
         with self.canvas:
@@ -295,7 +305,7 @@ class GameBoard(Widget):
     def _set_long_press(self, touch, dt=0):
         if touch.time_end == -1:
             self.is_long_press = True
-            self.set_square(*self._get_touch_on_grid(touch), (0.2, 0.2, 0.8, 1))
+            self._trigger_flag(self._get_touch_on_grid(touch))
 
     def _get_touch_on_grid(self, touch):
         local_x, local_y = self.to_local(touch.ox, touch.oy, relative=True)
@@ -305,6 +315,15 @@ class GameBoard(Widget):
         if callable(self.on_release):
             self.on_release(self)
 
+    def _trigger_flag(self, position):
+        square = self.squares.get(position, {})
+        background_color = square.get('background_color', self.background_color)
+
+        if any(background_color):
+            if square.get('image'):
+                self.set_square(*position, image=None)
+            else:
+                self.set_square(*position, image=Icons.FLAG.value, color=self.color)
 
 
 class MinesweeperApp(App):

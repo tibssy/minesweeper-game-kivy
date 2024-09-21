@@ -196,6 +196,8 @@
 
         BoxLayout:
             orientation: 'vertical'
+            padding: 20
+            spacing: 20
             canvas.before:
                 Color:
                     rgba: root.primary_background
@@ -203,49 +205,27 @@
                     size: self.size
                     pos: self.pos
 
-            Header:
-                color: root.secondary_accent#
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.05
+                padding: [10,0,10,0]
+#                color: root.secondary_accent
                 Indicator:
                     text: '00'
                     line_width: 2
-                    color: root.primary_background
+                    color: root.font_color
                 Button:
                     text: 'back to home'
                     on_release: root.toggle_screen()
                 Indicator:
                     text: '00:00'
                     line_width: 2
-                    color: root.primary_background
+                    color: root.font_color
 
-            BoxLayout:
-                orientation: 'vertical'
-                padding: [10,2,10,20]
 
-#                canvas.before:
-#                    Color:
-#                        rgba: root.secondary_accent
-#                    Rectangle:
-#                        size: self.size
-#                        pos: self.pos
 
-                GameBoard:
-                    id: game_board
-                    background_color: root.secondary_background
+            GameBoard:
+                id: game_board
+                color: root.primary_accent
+                background_color: root.secondary_background
 
-#                    canvas.before:
-#                        Color:
-#                            rgba: root.primary_background
-#                        RoundedRectangle:
-#                            size: self.size
-#                            pos: self.pos
-#                            radius: [sp(8)]
-#                        Color:
-#                            rgba: 0.1,0.1,0.1,0.8
-#                        BoxShadow:
-#                            size: self.size
-#                            pos: self.pos
-#                            offset: 0, 0
-#                            spread_radius: 6, 6
-#                            border_radius: [sp(8)] * 4
-#                            blur_radius: sp(8)
-#                            inset: True

@@ -68,7 +68,7 @@ class LightTheme(Enum):
     SECONDARY_BACKGROUND = (0.75, 0.85)
     PRIMARY_ACCENT = (1, 0.45)
     SECONDARY_ACCENT = (1, 0.25)
-    FONT_COLOR = (0.15, 0.15)
+    FONT_COLOR = (0.25, 0.25)
 
 
 class DarkTheme(Enum):
@@ -87,13 +87,13 @@ class DarkTheme(Enum):
     SECONDARY_BACKGROUND = (0.20, 0.25)
     PRIMARY_ACCENT = (0.9, 0.6)
     SECONDARY_ACCENT = (1, 0.8)
-    FONT_COLOR = (0.95, 0.95)
+    FONT_COLOR = (0.85, 0.85)
 
 
 class GameSize(Enum):
-    SMALL = (8, 16)
-    MEDIUM = (12, 24)
-    LARGE = (16, 32)
+    SMALL = (6, 12)
+    MEDIUM = (9, 18)
+    LARGE = (12, 24)
 
 
 class Level(Enum):
@@ -120,7 +120,7 @@ class Icons(Enum):
     MINE = '\u2747'
     BOMB = '\U0001F4A3'
     SKULL = '\u2620'
-    FLAG = '\u2691'
+    FLAG = 'assets/images/flag.png'
     LEFT = '\u2B9C'
     RIGHT = '\u2B9E'
     UP = '\u2B9D'
