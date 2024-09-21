@@ -16,8 +16,10 @@ from kivy.factory import Factory
 from kivy.clock import Clock
 from kivy.graphics import Rectangle, Color, RoundedRectangle
 from kivy.core.text import Label as CoreLabel
+from kivy.core.image import Image as CoreImage
 
-from configurations import Hue, DarkTheme, LightTheme, GameSize, GameMode, Icons
+
+from configurations import Hue, DarkTheme, LightTheme, GameSize, Icons
 
 
 Builder.load_file('layout.kv')
@@ -119,10 +121,6 @@ class MainLayout(ScreenManager):
     game_size = StringProperty('medium')
     difficulty = StringProperty('easy')
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.set_game_size(self.game_size)
-
     def toggle_dark_mode(self, theme):
         self.theme = theme.lower()
         self.set_color_theme(self.color)
@@ -162,12 +160,6 @@ class MainLayout(ScreenManager):
 
     def set_game_size(self, size):
         self.game_size = size.lower()
-        cols, rows = GameSize[size.upper()].value
-        self.ids.game_board.cols = cols
-        self.ids.game_board.rows = rows
-
-
-
 
     def toggle_screen(self):
         if self.current == 'main_screen':
@@ -188,12 +180,7 @@ class GameBoard(Widget):
     background_color = ColorProperty([0.4, 0.4, 0.4])
     color = ColorProperty([0, 0, 0, 1])
 
-    def __init__(
-            self,
-            press_time=1,
-            on_release=None,
-            **kwargs
-    ):
+    def __init__(self, press_time=1, on_release=None, **kwargs):
         super().__init__(**kwargs)
         self.press_time = press_time
         self.is_long_press = False
@@ -206,6 +193,10 @@ class GameBoard(Widget):
     def update_board(self, *args):
         self.canvas.clear()
         self.draw_board()
+
+    def reset_board(self):
+        self.squares = {}
+        self.update_board()
 
     def draw_board(self):
         square_width = (self.width - self.gap * (self.cols + 1)) / self.cols
@@ -223,7 +214,11 @@ class GameBoard(Widget):
 
         Color(*background_color)
         RoundedRectangle(pos=(x, y), size=(square_width, square_height), radius=[5])
-        self._draw_square_text(square_data, x, y, square_width, square_height)
+
+        if square_data.get('image'):
+            self._draw_square_image(square_data, x, y, square_width, square_height)
+        else:
+            self._draw_square_text(square_data, x, y, square_width, square_height)
 
     def _calculate_square_position(self, row, col, square_width, square_height):
         x = col * (square_width + self.gap) + self.gap + self.pos[0]
@@ -234,7 +229,22 @@ class GameBoard(Widget):
         text = square_data.get('text')
         if text:
             color = square_data.get('color', (1, 1, 1, 1))
+            self._reset_canvas_color()
             self.draw_text(text, color, x, y, square_width, square_height)
+
+    def _draw_square_image(self, square_data, x, y, square_width, square_height):
+        try:
+            image = CoreImage(square_data.get('image')).texture
+            color = square_data.get('color', (1, 1, 1, 1))
+            with self.canvas.after:
+                Color(*color)
+                Rectangle(texture=image, pos=(x, y), size=(square_width, square_height))
+        except Exception as e:
+            print(f"Error loading image: {e}")
+
+    def _reset_canvas_color(self):
+        with self.canvas.after:
+            Color(1, 1, 1, 0)
 
     def draw_text(self, text, color, x, y, square_width, square_height):
         label = CoreLabel(text=text, font_size=min(square_width, square_height) * 0.8, bold=True, color=color)
@@ -244,12 +254,18 @@ class GameBoard(Widget):
         text_y = y + (square_height - text_size[1]) / 2
 
         with self.canvas.after:
+            Color(*color)
             Rectangle(texture=label.texture, pos=(text_x, text_y), size=text_size)
 
-    def set_square(self, row, col, background_color=None, text=None, color=(1, 1, 1, 1)):
+    def set_square(self, row, col, background_color=None, text=None, color=(1, 1, 1, 1), image=None):
         if background_color is None:
             background_color = self.background_color
-        self.squares[(row, col)] = {'background_color': background_color, 'text': text, 'color': color}
+        self.squares[(row, col)] = {
+            'background_color': background_color,
+            'text': text,
+            'color': color,
+            'image': image
+        }
         self.update_board()
 
     def on_touch_down(self, touch):
@@ -263,14 +279,12 @@ class GameBoard(Widget):
         if touch.grab_current is self:
             touch.ungrab(self)
             if not self.is_long_press:
-                # self._trigger_callback()
                 self.set_square(*self._get_touch_on_grid(touch), (0, 0, 0, 0))
             return True
 
     def _set_long_press(self, touch, dt=0):
         if touch.time_end == -1:
             self.is_long_press = True
-            # self._trigger_callback()
             self.set_square(*self._get_touch_on_grid(touch), (0.2, 0.2, 0.8, 1))
 
     def _get_touch_on_grid(self, touch):
@@ -282,73 +296,28 @@ class GameBoard(Widget):
             self.on_release(self)
 
 
-
-class BoardButton(Widget):
-    def __init__(
-            self,
-            press_time=1,
-            on_release=None,
-            **kwargs
-    ):
-        super().__init__(**kwargs)
-        self.press_time = press_time
-        self.is_long_press = False
-        self.on_release = on_release
-
-
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            self.is_long_press = False
-            Clock.schedule_once(partial(self._set_long_press, touch), self.press_time)
-            touch.grab(self)
-            return True
-
-    def on_touch_up(self, touch):
-        if touch.grab_current is self:
-            touch.ungrab(self)
-            if not self.is_long_press:
-                self._trigger_callback()
-            return True
-
-    def _set_long_press(self, touch, dt=0):
-        if touch.time_end == -1:
-            self.is_long_press = True
-            self._trigger_callback()
-
-    def _trigger_callback(self):
-        if callable(self.on_release):
-            self.on_release(self)
-
-
-
 class MinesweeperApp(App):
     def build(self):
         return MainLayout()
 
-
     def build_game(self):
-        pass
-        print(self.root.game_size)
-        width, height = GameSize[self.root.game_size.upper()].value
+        cols, rows = GameSize[self.root.game_size.upper()].value
 
+        self.initialize_game(cols, rows)
+        self.initialize_game_ui(cols, rows)
+
+    def initialize_game_ui(self, cols, rows):
+        self.root.ids.game_board.reset_board()
+        self.root.ids.game_board.cols = cols
+        self.root.ids.game_board.rows = rows
+
+    def initialize_game(self, cols, rows):
         game = GameLogic(
-            cols=width,
-            rows=height,
+            cols=cols,
+            rows=rows,
             number_of_mines=10
         )
         print(game.game_matrix)
-        # self.root.ids.game_grid.cols = width
-        #
-        # for id in range(width * height):
-        #     button = BoardButton()
-        #     button.radius = 5
-        #     button.color = self.root.primary_accent if id % 2 else self.root.secondary_accent
-        #     button.on_release = self.set_button
-        #     self.root.ids.game_grid.add_widget(button)
-
-
-    def set_button(self, instance):
-        instance.color = (0,1,0,1) if instance.is_long_press else (1,0,0,1)
 
 
 if __name__ == "__main__":

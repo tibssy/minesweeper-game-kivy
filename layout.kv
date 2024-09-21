@@ -13,6 +13,7 @@
             width: self.line_width or 1
             rounded_rectangle: self.x, self.y, self.width, self.height, self.radius
 
+
 <ImageButton@ButtonBehavior+Image>
     allow_stretch: True
 
@@ -113,28 +114,6 @@
                 root.current_index = (root.current_index + 1) % len(root.options)
 
 
-<BoardButton>
-    color: 1,1,1,1
-    radius: 10
-#    canvas.before:
-#        Color:
-#            rgba: 0.1, 0.1, 0.1, 0.5
-#        BoxShadow:
-#            pos: self.pos
-#            size: self.size
-#            offset: 0, -2
-#            spread_radius: 3, 3
-#            border_radius: 6, 6, 6, 6
-#            blur_radius: self.radius
-    canvas:
-        Color:
-            rgba: self.color
-        RoundedRectangle:
-            size: self.size
-            pos: self.pos
-            radius: [self.radius]
-
-
 <MainLayout>
     transition: CardTransition()
 
@@ -224,7 +203,9 @@
                     text: '00'
                     line_width: 2
                     color: root.primary_background
-                Widget:
+                Button:
+                    text: 'back to home'
+                    on_release: root.toggle_screen()
                 Indicator:
                     text: '00:00'
                     line_width: 2
@@ -240,7 +221,6 @@
                     Rectangle:
                         size: self.size
                         pos: self.pos
-
 
                 GameBoard:
                     id: game_board
@@ -263,9 +243,3 @@
                             border_radius: [sp(8)] * 4
                             blur_radius: sp(8)
                             inset: True
-
-
-#                    Button:
-##                        size_hint: 0.5, 0.5
-#                        on_release: root.toggle_screen()
-

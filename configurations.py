@@ -90,21 +90,6 @@ class DarkTheme(Enum):
     FONT_COLOR = (0.95, 0.95)
 
 
-class GameMode(Enum):
-    """
-    Enum representing different game modes and their settings.
-
-    Attributes:
-        EASY (dict): Settings for easy mode.
-        MEDIUM (dict): Settings for medium mode.
-        HARD (dict): Settings for hard mode.
-    """
-
-    EASY = {'mine': 10, 'grid_size': (7, 14)}
-    MEDIUM = {'mine': 25, 'grid_size': (11, 22)}
-    HARD = {'mine': 50, 'grid_size': (15, 30)}
-
-
 class GameSize(Enum):
     SMALL = (8, 16)
     MEDIUM = (12, 24)
