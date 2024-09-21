@@ -176,7 +176,6 @@ class MainLayout(ScreenManager):
 class GameBoard(Widget):
     rows = NumericProperty(16)
     cols = NumericProperty(8)
-    gap = NumericProperty(10)
     background_color = ColorProperty([0.4, 0.4, 0.4])
     color = ColorProperty([0, 0, 0, 1])
 
@@ -188,6 +187,7 @@ class GameBoard(Widget):
         self.squares = {}
         self.square_width = None
         self.square_height = None
+        self.gap = None
         self.radius = None
         self.bind(size=self.update_board, pos=self.update_board)
         self.bind(rows=self.update_board, cols=self.update_board)
@@ -202,8 +202,10 @@ class GameBoard(Widget):
         self.update_board()
 
     def draw_board(self):
+        self.gap = self.width * 0.015
         self.square_width = (self.width - self.gap * (self.cols + 1)) / self.cols
         self.square_height = (self.height - self.gap * (self.rows + 1)) / self.rows
+        self.radius = self.square_width * 0.1
 
         with self.canvas:
             for row in range(self.rows):
@@ -216,14 +218,14 @@ class GameBoard(Widget):
         square_data = self.squares.get((row, col), {})
         background_color = square_data.get('background_color', self.background_color)
         shadow_color = [0, 0, 0, 0.2]
-        shadow_offset = 5
+        shadow_offset = self.gap * 0.5
 
         with self.canvas:
             if any(background_color):
                 Color(*shadow_color)
-                RoundedRectangle(pos=(x, y - shadow_offset), size=(self.square_width + shadow_offset, self.square_height), radius=[10])
+                RoundedRectangle(pos=(x, y - shadow_offset), size=(self.square_width + shadow_offset, self.square_height), radius=[self.radius])
             Color(*background_color)
-            RoundedRectangle(pos=(x, y), size=(self.square_width, self.square_height), radius=[10])
+            RoundedRectangle(pos=(x, y), size=(self.square_width, self.square_height), radius=[self.radius])
 
         if square_data.get('image'):
             self._draw_square_image(square_data, x, y)
