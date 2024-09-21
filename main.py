@@ -176,7 +176,7 @@ class MainLayout(ScreenManager):
 class GameBoard(Widget):
     rows = NumericProperty(16)
     cols = NumericProperty(8)
-    gap = NumericProperty(5)
+    gap = NumericProperty(10)
     background_color = ColorProperty([0.4, 0.4, 0.4])
     color = ColorProperty([0, 0, 0, 1])
 
@@ -186,6 +186,9 @@ class GameBoard(Widget):
         self.is_long_press = False
         self.on_release = on_release
         self.squares = {}
+        self.square_width = None
+        self.square_height = None
+        self.radius = None
         self.bind(size=self.update_board, pos=self.update_board)
         self.bind(rows=self.update_board, cols=self.update_board)
         self.draw_board()
@@ -199,46 +202,53 @@ class GameBoard(Widget):
         self.update_board()
 
     def draw_board(self):
-        square_width = (self.width - self.gap * (self.cols + 1)) / self.cols
-        square_height = (self.height - self.gap * (self.rows + 1)) / self.rows
+        self.square_width = (self.width - self.gap * (self.cols + 1)) / self.cols
+        self.square_height = (self.height - self.gap * (self.rows + 1)) / self.rows
 
         with self.canvas:
             for row in range(self.rows):
                 for col in range(self.cols):
-                    self._draw_square(row, col, square_width, square_height)
+                    self._draw_square(row, col)
 
-    def _draw_square(self, row, col, square_width, square_height):
-        x, y = self._calculate_square_position(row, col, square_width, square_height)
+    def _draw_square(self, row, col):
+        print(self.square_width)
+        x, y = self._calculate_square_position(row, col)
         square_data = self.squares.get((row, col), {})
         background_color = square_data.get('background_color', self.background_color)
+        shadow_color = [0, 0, 0, 0.2]
+        shadow_offset = 5
 
-        Color(*background_color)
-        RoundedRectangle(pos=(x, y), size=(square_width, square_height), radius=[5])
+        with self.canvas:
+            if any(background_color):
+                Color(*shadow_color)
+                RoundedRectangle(pos=(x, y - shadow_offset), size=(self.square_width + shadow_offset, self.square_height), radius=[10])
+            Color(*background_color)
+            RoundedRectangle(pos=(x, y), size=(self.square_width, self.square_height), radius=[10])
 
         if square_data.get('image'):
-            self._draw_square_image(square_data, x, y, square_width, square_height)
+            self._draw_square_image(square_data, x, y)
         else:
-            self._draw_square_text(square_data, x, y, square_width, square_height)
+            self._draw_square_text(square_data, x, y)
 
-    def _calculate_square_position(self, row, col, square_width, square_height):
-        x = col * (square_width + self.gap) + self.gap + self.pos[0]
-        y = row * (square_height + self.gap) + self.gap + self.pos[1]
+    def _calculate_square_position(self, row, col):
+        x = col * (self.square_width + self.gap) + self.gap + self.pos[0]
+        y = row * (self.square_height + self.gap) + self.gap + self.pos[1]
         return x, y
 
-    def _draw_square_text(self, square_data, x, y, square_width, square_height):
+    def _draw_square_text(self, square_data, x, y):
         text = square_data.get('text')
         if text:
             color = square_data.get('color', (1, 1, 1, 1))
             self._reset_canvas_color()
-            self.draw_text(text, color, x, y, square_width, square_height)
+            self.draw_text(text, color, x, y)
 
-    def _draw_square_image(self, square_data, x, y, square_width, square_height):
+    def _draw_square_image(self, square_data, x, y):
         try:
             image = CoreImage(square_data.get('image')).texture
             color = square_data.get('color', (1, 1, 1, 1))
             with self.canvas.after:
                 Color(*color)
-                Rectangle(texture=image, pos=(x, y), size=(square_width, square_height))
+                Rectangle(texture=image, pos=(x, y), size=(self.square_width, self.square_height))
         except Exception as e:
             print(f"Error loading image: {e}")
 
@@ -246,12 +256,12 @@ class GameBoard(Widget):
         with self.canvas.after:
             Color(1, 1, 1, 0)
 
-    def draw_text(self, text, color, x, y, square_width, square_height):
-        label = CoreLabel(text=text, font_size=min(square_width, square_height) * 0.8, bold=True, color=color)
+    def draw_text(self, text, color, x, y):
+        label = CoreLabel(text=text, font_size=min(self.square_width, self.square_height) * 0.8, bold=True, color=color)
         label.refresh()
         text_size = label.texture.size
-        text_x = x + (square_width - text_size[0]) / 2
-        text_y = y + (square_height - text_size[1]) / 2
+        text_x = x + (self.square_width - text_size[0]) / 2
+        text_y = y + (self.square_height - text_size[1]) / 2
 
         with self.canvas.after:
             Color(*color)
