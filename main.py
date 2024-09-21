@@ -187,7 +187,7 @@ class GameBoard(Widget):
         self.squares = {}
         self.square_width = None
         self.square_height = None
-        self.gap = None
+        self.scale_factor = 0.9
         self.radius = None
         self.bind(size=self.update_board, pos=self.update_board)
         self.bind(rows=self.update_board, cols=self.update_board)
@@ -202,9 +202,8 @@ class GameBoard(Widget):
         self.update_board()
 
     def draw_board(self):
-        self.gap = self.width * 0.015
-        self.square_width = (self.width - self.gap * (self.cols + 1)) / self.cols
-        self.square_height = (self.height - self.gap * (self.rows + 1)) / self.rows
+        self.square_width = self.width / self.cols * self.scale_factor
+        self.square_height = self.height / self.rows * self.scale_factor
         self.radius = self.square_width * 0.1
 
         with self.canvas:
@@ -213,17 +212,16 @@ class GameBoard(Widget):
                     self._draw_square(row, col)
 
     def _draw_square(self, row, col):
-        print(self.square_width)
         x, y = self._calculate_square_position(row, col)
         square_data = self.squares.get((row, col), {})
         background_color = square_data.get('background_color', self.background_color)
         shadow_color = [0, 0, 0, 0.2]
-        shadow_offset = self.gap * 0.5
+        shadow_offset = self.square_width * 0.05
 
         with self.canvas:
             if any(background_color):
                 Color(*shadow_color)
-                RoundedRectangle(pos=(x, y - shadow_offset), size=(self.square_width + shadow_offset, self.square_height), radius=[self.radius])
+                RoundedRectangle(pos=(x - shadow_offset, y - shadow_offset), size=(self.square_width + shadow_offset, self.square_height + shadow_offset), radius=[self.radius])
             Color(*background_color)
             RoundedRectangle(pos=(x, y), size=(self.square_width, self.square_height), radius=[self.radius])
 
@@ -233,8 +231,8 @@ class GameBoard(Widget):
             self._draw_square_text(square_data, x, y)
 
     def _calculate_square_position(self, row, col):
-        x = col * (self.square_width + self.gap) + self.gap + self.pos[0]
-        y = row * (self.square_height + self.gap) + self.gap + self.pos[1]
+        x = col * self.width / self.cols + (self.width / self.cols - self.square_width) / 2 + self.pos[0]
+        y = row * self.height / self.rows + (self.height / self.rows - self.square_height) / 2 + self.pos[1]
         return x, y
 
     def _draw_square_text(self, square_data, x, y):
@@ -306,6 +304,7 @@ class GameBoard(Widget):
     def _trigger_callback(self):
         if callable(self.on_release):
             self.on_release(self)
+
 
 
 class MinesweeperApp(App):
