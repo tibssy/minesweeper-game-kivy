@@ -3,10 +3,26 @@
 
 <Bordered@Widget>
     color: [1,1,1,1]
+    background_color: [0,0,0,0]
 #    padding: sp(10)
     radius: 10
     line_width: None
     canvas.before:
+        Color:
+            rgba: 0.1, 0.1, 0.1, 0.5
+        BoxShadow:
+            pos: self.pos
+            size: self.size
+            offset: 0, -2
+            spread_radius: 3, 3
+            border_radius: [self.radius] * 4
+            blur_radius: self.radius
+        Color:
+            rgba: self.background_color
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [10]
         Color:
             rgba: self.color
         Line:
@@ -129,8 +145,10 @@
                     size: self.size
                     pos: self.pos
 
-            Header:
-                color: root.secondary_accent
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.05
+                padding: [10,0,10,0]
 
                 Image:
                     size_hint_x: None
@@ -138,7 +156,7 @@
                     source: 'assets/images/mine.png'
                     size: self.texture_size
                 Label:
-                    color: root.primary_background
+                    color: root.font_color
                     font_name: 'assets/fonts/JetBrainsMono-Bold.ttf'
                     font_size: sp(24)
                     text: 'Minesweeper Game'
@@ -161,22 +179,26 @@
                     Selector:
                         text: 'Theme'
                         color: root.secondary_accent
+                        background_color: root.secondary_background
                         options: ['Dark', 'Light']
                         on_value: root.toggle_dark_mode(self.value)
                     Selector:
                         text: 'Color'
                         color: root.secondary_accent
+                        background_color: root.secondary_background
                         options: ['Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Pink', 'Red']
                         on_value: root.set_color_theme(self.value)
                     Selector:
                         text: 'Size'
                         color: root.secondary_accent
+                        background_color: root.secondary_background
                         options: ['Small', 'Medium', 'Large']
                         current_index: 1
                         on_value: root.set_game_size(self.value)
                     Selector:
                         text: 'Difficulty'
                         color: root.secondary_accent
+                        background_color: root.secondary_background
                         options: ['Easy', 'Medium', 'Hard']
                         on_value: root.difficulty = self.value.lower()
                     BorderedButton:
@@ -184,12 +206,13 @@
                         height: sp(50)
                         text: 'Play'
                         color: root.secondary_accent
+                        background_color: root.secondary_background
                         on_release:
                             root.toggle_screen()
                             app.build_game()
 
-            Footer:
-                color: root.secondary_accent
+#            Footer:
+#                color: root.secondary_accent
 
     Screen:
         name: 'game_screen'
