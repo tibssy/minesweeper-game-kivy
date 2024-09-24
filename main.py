@@ -14,12 +14,12 @@ from kivy.animation import Animation
 from kivy.uix.widget import Widget
 from kivy.factory import Factory
 from kivy.clock import Clock
-from kivy.graphics import Rectangle, Color, RoundedRectangle
+from kivy.graphics import Rectangle, Color, RoundedRectangle, Line
 from kivy.core.text import Label as CoreLabel
 from kivy.core.image import Image as CoreImage
 
 
-from configurations import Hue, DarkTheme, LightTheme, GameSize, Icons
+from configurations import Hue, DarkTheme, LightTheme, GameSize, Level, Icons
 
 
 Builder.load_file('layout.kv')
@@ -166,9 +166,11 @@ class MainLayout(ScreenManager):
         )
         animate.start(self)
 
-
     def set_game_size(self, size):
         self.game_size = size.lower()
+
+    def set_difficulty(self, level):
+        self.difficulty = level.lower()
 
     def toggle_screen(self):
         if self.current == 'main_screen':
@@ -232,6 +234,7 @@ class GameBoard(Widget):
             if any(background_color):
                 Color(*shadow_color)
                 RoundedRectangle(pos=(x - shadow_offset, y - shadow_offset), size=(self.square_width + shadow_offset, self.square_height + shadow_offset), radius=[self.radius])
+
             Color(*background_color)
             RoundedRectangle(pos=(x, y), size=(self.square_width, self.square_height), radius=[self.radius])
 
@@ -342,10 +345,11 @@ class MinesweeperApp(App):
         self.root.ids.game_board.rows = rows
 
     def initialize_game(self, cols, rows):
+        mines = cols * rows * Level[self.root.difficulty.upper()].value // 100
         game = GameLogic(
             cols=cols,
             rows=rows,
-            number_of_mines=10
+            number_of_mines=mines
         )
         print(game.game_matrix)
 
